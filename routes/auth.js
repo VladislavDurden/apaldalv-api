@@ -9,7 +9,8 @@ router.post('/login', function(req, res, next) {
     console.log('Empty user data');
   }
 
-  console.log(userData);
+  res.json(userData);
+  res.send();
 });
 
 router.post('/register', function(req, res, next) {
