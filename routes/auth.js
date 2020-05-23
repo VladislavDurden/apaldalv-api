@@ -1,61 +1,13 @@
 const express = require('express');
 const router = express.Router();
+const moment = require('moment');
 
-// const {MongoClient} = require('mongodb');
-// const client = new MongoClient(uri);
-// const DB_NAME = 'apaldalv';
+const User = require('../models/user');
 
 const mongoose = require('mongoose');
-const uri = `mongodb+srv://admin:apaldalv!_@cluster0-1qm9j.mongodb.net/test?retryWrites=true&w=majority&useUnifiedTopology=true`;
+const uri = `mongodb+srv://admin:wbMuYre6@cluster0-1qm9j.mongodb.net/test?retryWrites=true&w=majority&useUnifiedTopology=true`;
 
 router.post('/login', async (req, res) => {
-  const requestBody = req.body;
-  const error = 'Something went wrong!';
-
-  if(!requestBody) {
-		res.send(error);
-  }
-
-  const userData = {
-    email: requestBody.email,
-    password: requestBody.password
-  };
-
-  await mongoose.connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-    .then(() => {
-      const db = mongoose.connection;
-
-      db.on('error', console.error.bind(console, 'connection error:'));
-
-      db.once('open', function() {
-        console.log("Connection Successful!");
-
-        const UserSchema = mongoose.Schema({
-          email: String,
-          password: String,
-        });
-
-        const UserModel = mongoose.model('User', UserSchema, 'users');
-        const user = new UserModel(userData);
-
-        user.save((err, user) => {
-          if (err) return console.error(err);
-          console.log(user.email + " saved to bookstore collection.");
-          res.json(userData);
-        });
-      });
-    })
-		.catch((err) => {
-			console.log('err', err);
-		});
-
-  res.send();
-});
-
-router.post('/register', function(req, res) {
   const userData = req.body;
 
   if(!userData) {
@@ -63,6 +15,35 @@ router.post('/register', function(req, res) {
   }
 
   res.json(userData);
+  res.send();
+});
+
+router.post('/register', async(req, res) => {
+  const requestBody = req.body;
+
+  if (!requestBody) {
+    res.send('Empty user data!');
+  }
+
+  const userData = {
+    email: requestBody.email,
+    password: requestBody.password,
+    createdDate: moment().format(),
+    status: 'REGISTERED',
+  };
+
+  await mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    },
+    (err) => {
+      console.log('Error while connecting to DB:', err);
+    })
+    .then(() => {
+      const user = new User(userData);
+      user.save();
+    });
+
   res.send();
 });
 
