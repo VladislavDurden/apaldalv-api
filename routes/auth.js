@@ -44,6 +44,7 @@ router.post('/login', async (req, res) => {
         user.save((err, user) => {
           if (err) return console.error(err);
           console.log(user.email + " saved to bookstore collection.");
+          res.json(userData);
         });
       });
     })
@@ -51,9 +52,6 @@ router.post('/login', async (req, res) => {
 			console.log('err', err);
 		});
 
-
-
-  res.json(userData);
   res.send();
 });
 
