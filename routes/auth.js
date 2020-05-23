@@ -19,9 +19,14 @@ router.post('/login', async (req, res) => {
     password: requestBody.password
   };
 
-  await client.db(DB_NAME).collection("users").insertOne(userData);
+  await client.db(DB_NAME).collection("users").insertOne(userData)
+    .then(() => {
+      res.json(userData);
+    })
+    .catch((err) => {
+      console.log('something went wrong', err);
+    });
 
-  res.json(userData);
   res.send();
 });
 
