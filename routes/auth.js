@@ -21,6 +21,9 @@ router.post('/login', async (req, res) => {
 
   await client.connect()
     .then(async () => {
+      const databasesList = await client.db().admin().listDatabases();
+      console.log(databasesList);
+
       await client.db(DB_NAME).collection("users").insertOne(userData)
         .then(() => {
           res.json(userData);
