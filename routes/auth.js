@@ -46,7 +46,10 @@ router.post('/login', async (req, res) => {
           console.log(user.email + " saved to bookstore collection.");
         });
       });
-    });
+    })
+		.catch((err) => {
+			console.log('err', err);
+		});
 
 
 
