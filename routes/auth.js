@@ -42,6 +42,7 @@ router.post('/register', async(req, res) => {
     .then(() => {
       const user = new User(userData);
       user.save();
+      res.json(userData);
     });
 
   res.send();
