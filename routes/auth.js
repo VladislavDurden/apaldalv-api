@@ -19,12 +19,18 @@ router.post('/login', async (req, res) => {
     password: requestBody.password
   };
 
-  await client.db(DB_NAME).collection("users").insertOne(userData)
-    .then(() => {
-      res.json(userData);
+  await client.connect()
+    .then(async () => {
+      await client.db(DB_NAME).collection("users").insertOne(userData)
+        .then(() => {
+          res.json(userData);
+        })
+        .catch((err) => {
+          console.log('Error while adding data in db:', err);
+        });
     })
     .catch((err) => {
-      console.log('something went wrong', err);
+      console.log('Error while connects to db:', err);
     });
 
   res.send();
