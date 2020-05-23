@@ -5,10 +5,10 @@ const moment = require('moment');
 const User = require('../models/user');
 
 const mongoose = require('mongoose');
-const DB_NAME = 'apaldalv';
+const DB_NAME = 'admin';
 const DB_PASSWORD = 'wbMuYre6';
 const DB = 'apaldalv';
-const uri = `mongodb+srv://${DB_NAME}:${DB_PASSWORD}@cluster0-1qm9j.mongodb.net/test?retryWrites=true&w=majority&useUnifiedTopology=true`;
+const uri = `mongodb+srv://${DB_NAME}:${DB_PASSWORD}@cluster0-1qm9j.mongodb.net/${DB}?retryWrites=true&w=majority&useUnifiedTopology=true`;
 
 router.post('/login', async (req, res) => {
   const userData = req.body;
