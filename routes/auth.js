@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
 
-const {MongoClient} = require('mongodb');
+// const {MongoClient} = require('mongodb');
+// const client = new MongoClient(uri);
+// const DB_NAME = 'apaldalv';
+
+const mongoose = require('mongoose');
 const uri = `mongodb+srv://admin:apaldalv!_@cluster0-1qm9j.mongodb.net/test?retryWrites=true&w=majority&useUnifiedTopology=true`;
-const client = new MongoClient(uri);
-const DB_NAME = 'apaldalv';
 
 router.post('/login', async (req, res) => {
   const requestBody = req.body;
@@ -19,28 +21,36 @@ router.post('/login', async (req, res) => {
     password: requestBody.password
   };
 
-  await mongoose.connect('mongodb://localhost/my_database', {
+  await mongoose.connect(uri, {
     useNewUrlParser: true,
     useUnifiedTopology: true
-  });
+  })
+    .then(() => {
+      const db = mongoose.connection;
 
-  await client.connect()
-    .then(async () => {
-      const databasesList = await client.db().admin().listDatabases();
-      console.log(databasesList);
+      db.on('error', console.error.bind(console, 'connection error:'));
 
-      await client.db(DB_NAME).collection("users").insertOne(userData)
-        .then(() => {
-          res.json(userData);
-        })
-        .catch((err) => {
-          console.log('Error while adding data in db:', err);
+      db.once('open', function() {
+        console.log("Connection Successful!");
+
+        const UserSchema = mongoose.Schema({
+          email: String,
+          password: String,
         });
-    })
-    .catch((err) => {
-      console.log('Error while connects to db:', err);
+
+        const UserModel = mongoose.model('User', UserSchema, 'users');
+        const user = new UserModel(userData);
+
+        user.save((err, user) => {
+          if (err) return console.error(err);
+          console.log(user.email + " saved to bookstore collection.");
+        });
+      });
     });
 
+
+
+  res.json(userData);
   res.send();
 });
 
