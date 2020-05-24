@@ -11,7 +11,6 @@ const DB = 'apaldalv';
 const uri = `mongodb+srv://${DB_NAME}:${DB_PASSWORD}@cluster0-1qm9j.mongodb.net/${DB}?retryWrites=true&w=majority&useUnifiedTopology=true`;
 
 router.post('/login', async (req, res) => {
-  console.log(req);
   const userData = req.body;
 
   if(!userData) {
