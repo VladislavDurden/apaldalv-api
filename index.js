@@ -9,7 +9,7 @@ const authRouts = require('./routes/auth');
 const app = express();
 
 app.use(logger('dev'));
-app.use(express.json({ extended: true }));
+app.use(express.json({ extended: true}));
 app.use(express.urlencoded({ extended: false }));
 app.use(cors({origin: true}));
 app.use(cookieParser());
