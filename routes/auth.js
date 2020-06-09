@@ -3,38 +3,80 @@ const router = express.Router();
 const moment = require('moment');
 const { check, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
+
+const BadRequestError =require('../errors/BadRequestError');
 
 const User = require('../models/user');
-const jwtSecretKey = "Anchors"
+const JWT_SECRET_KEY = "5Ykhg7D100bG";
 
-const mongoose = require('mongoose');
-const DB_NAME = 'admin';
-const DB_PASSWORD = 'wbMuYre6';
-const DB = 'apaldalv';
-const uri = `mongodb+srv://${DB_NAME}:${DB_PASSWORD}@cluster0-1qm9j.mongodb.net/${DB}?retryWrites=true&w=majority&useUnifiedTopology=true`;
+router.post('/register', [check('email', 'Incorrect email').isEmail(), check('password', 'Minimal password length 6 symbols').isLength({ min: 6 })], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            errors: errors.array(),
+            message: 'Incorrect registration data',
+        })
+    }
+
+    const {email, password} = req.body;
+    let userData;
+
+    await User.findOne({email}, (err, data) => {
+        userData = data;
+        if(userData._id){
+            throw new BadRequestError("Email already in use");
+            //res.json({message: "Email already in use"});
+            //res.status(400);
+        }
+    });
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+    // const token = jwt.sign(
+    //   {},
+    //   JWT_SECRET_KEY,
+    //   {
+    //       subject: userId,
+    //       expiresIn: '24h'
+    //   }
+    // );
+    const user = new User({
+        email,
+        password: hashedPassword,
+        createdDate: moment().format(),
+        status: 'REGISTERED'
+    });
+
+    user.save()
+      .then(() => {
+          res.json(user);
+      })
+      .catch(() => {
+          res.status(500).json({message: "Server error"});
+      })
+});
 
 router.post('/login', [check('email', 'Plese send a correct email').normalizeEmail().isEmail(), check('password', 'Send passord').exists()], async (req, res) => {
 //const userData = req.body;
 
     try {
-        const errors = validationResult(req)
+        const errors = validationResult(req);
 
-        if (errors.isEmpty) {
+        if (!errors.isEmpty()) {
             return res.status(400).json({
                 errors: errors.array,
-                message: 'Incorrect login data'
+                message: 'Incorrect login data',
             })
         }
-        const { email, password } = req.body
+        const { email, password } = req.body;
 
-        const user = await User.findOne({ email })
+        const user = await User.findOne({ email });
 
         if (!user) {
-            return res.status(400).json({ message: "User not found" })
+            return res.status(400).json({ message: "User not found" });
         }
 
-        const isMatch = await bcrypt.compare(password, User.password)
+        const isMatch = await bcrypt.compare(password, User.password);
 
         if (!isMatch) {
             return res.status(400).json({ message: "Incorrect password" })
@@ -42,76 +84,16 @@ router.post('/login', [check('email', 'Plese send a correct email').normalizeEma
         const token = jwt.sign(
             { userId: user.id },
             jwtSecretKey,
-            { expiresIn: '72h' },
-        )
-        res.json({ token, userId: user.id })
+            { expiresIn: '120h' },
+        );
+        res.json({ token, userId: user.id });
 
     } catch (e) {
-        res.status(500).json({ message: "Что-то пошло не так, попробуйте снова" })
+        res.status(500).json({ message: "Something went wrong" })
     }
 
   //res.json(userData);
   //res.send();
-});
-
-router.post('/register', [check('email', 'Incorrect email').isEmail(), check('password', 'Minimal password lenght 6 symbols').isLength({ min: 6 })],
-    async (req, res) => {
-    try {
-
-        const errors = validationResult(req)
-
-        if (!errors.isEmpty()) {
-            return res.status(400).json({
-                errors: errors.array(),
-                message: 'Incorrect registration data'
-            })
-        }
-
-        const { email, password } = req.body
-
-        const candidate = await User.findOne({ email })
-
-        if (candidate) {
-            return res.status(400).json({ message: "User already exists" })
-
-        }
-        const hashedPassword = await bcrypt.hash(password, 12) 
-        const user = new User({ email, password: hashedPassword, createdDate: moment().format(), status: 'REGISTERED' })
-
-        await user.save()
-        res.status(201).json({ message: "User was created" })
-
-
-    } catch (e) {
-        res.status(500).json({ message: "Server error 500" })
-    }
-  /*const requestBody = req.body;
-
-  if (!requestBody) {
-    res.send('Empty user data!');
-  }*/
-
-  /*const userData = {
-    email: requestBody.email,
-    password: requestBody.password,
-    createdDate: moment().format(),
-    status: 'REGISTERED',
-  };*/
-
-  await mongoose.connect(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    },
-    (err) => {
-      console.log('Error while connecting to DB:', err);
-    })
-    .then(() => {
-      const user = new User(userData);
-      user.save();
-      res.json(userData);
-    });
-
- // res.send();
 });
 
 module.exports = router;
