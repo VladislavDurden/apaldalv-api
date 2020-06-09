@@ -25,9 +25,7 @@ router.post('/register', [check('email', 'Incorrect email').isEmail(), check('pa
     await User.findOne({email}, (err, data) => {
         userData = data;
         if(userData._id){
-            throw new BadRequestError("Email already in use");
-            //res.json({message: "Email already in use"});
-            //res.status(400);
+            res.status(400).json({message: "Email already in use"});
         }
     });
 
